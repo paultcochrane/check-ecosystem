@@ -19,6 +19,8 @@ sub MAIN {
     my $proto-file = $*SPEC.catfile($*PROGRAM_NAME.IO.dirname, "proto.json");
     my $proto-json = $proto-file.IO.slurp;
 
+    mkdir "ecosystem" unless "ecosystem".IO.e;
+
     my %ecosystem := from-json($proto-json);
     my @ecosystem-keys = %ecosystem.keys.sort;
     for @ecosystem-keys -> $key {
