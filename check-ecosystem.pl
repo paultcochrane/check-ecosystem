@@ -18,7 +18,15 @@ sub report-unit-required($module-path) {
     return $output !~~ '';
 }
 
-sub MAIN(Bool :$update = False) {
+sub fork-repo($repo-url, $user) {
+    say "Forking $repo-url";
+    my $repo-path = $repo-url.subst('https://github.com/', '');
+    my $command = "curl -u '$user' -X POST https://api.github.com/repos/$repo-path" ~ "forks";
+    say $command;
+    # qqx{$command};
+}
+
+sub MAIN($user, Bool :$update = False) {
     my $proto-file = $*SPEC.catfile($*PROGRAM_NAME.IO.dirname, "proto.json");
     if !$proto-file.IO.e or $update {
         say "Fetching proto.json from modules.perl6.org";
@@ -35,7 +43,8 @@ sub MAIN(Bool :$update = False) {
         my $repo-url = %module-data{'url'};
         my $module-path = $*SPEC.catfile("ecosystem", $repo-url.split(rx/\//)[*-2]);
         clone-repo($repo-url) unless $module-path.IO.e;
-        report-unit-required($module-path);
+        my $unit-is-required = report-unit-required($module-path);
+        fork-repo($repo-url, $user) if $unit-is-required;
     }
 }
 
