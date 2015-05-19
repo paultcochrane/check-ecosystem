@@ -1,6 +1,7 @@
 use v6;
 
 use JSON::Tiny;
+use LWP::Simple;
 
 sub clone-repo($repo-url) {
     my $command = "cd ecosystem; git clone $repo-url";
@@ -15,8 +16,12 @@ sub report-unit-required($module-path) {
             !! say "Looks ok";
 }
 
-sub MAIN {
+sub MAIN(Bool :$update = False) {
     my $proto-file = $*SPEC.catfile($*PROGRAM_NAME.IO.dirname, "proto.json");
+    if !$proto-file.IO.e or $update {
+        say "Fetching proto.json from modules.perl6.org";
+        LWP::Simple.getstore("http://modules.perl6.org/proto.json", "proto.json");
+    }
     my $proto-json = $proto-file.IO.slurp;
 
     mkdir "ecosystem" unless "ecosystem".IO.e;
