@@ -2,8 +2,8 @@ use v6;
 
 use JSON::Tiny;
 
-sub checkout-repo($repo-url) {
-    my $command = "git clone $repo-url";
+sub clone-repo($repo-url) {
+    my $command = "cd ecosystem; git clone $repo-url";
     qqx{$command};
 }
 
@@ -26,8 +26,8 @@ sub MAIN {
     for @ecosystem-keys -> $key {
         my %module-data := %ecosystem{$key};
         my $repo-url = %module-data{'url'};
-        my $module-path = $repo-url.split(rx/\//)[*-2];
-        checkout-repo($repo-url) unless $module-path.IO.e;
+        my $module-path = $*SPEC.catfile("ecosystem", $repo-url.split(rx/\//)[*-2]);
+        clone-repo($repo-url) unless $module-path.IO.e;
         report-unit-required($module-path);
     }
 }
