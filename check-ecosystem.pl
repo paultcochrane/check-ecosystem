@@ -14,6 +14,8 @@ sub report-unit-required($module-path) {
     my $output = qqx{$command};
     $output ?? say "Found unitless, blockless module/class/grammar declarator"
             !! say "Looks ok";
+
+    return $output !~~ '';
 }
 
 sub MAIN(Bool :$update = False) {
