@@ -26,6 +26,16 @@ sub fork-repo($repo-url, $user) {
     # qqx{$command};
 }
 
+sub update-repo-origin($module-path, $repo-url, $repo-owner, $user) {
+    say "Pointing repo's origin to $user\'s fork";
+    my $new-url = $repo-url.subst($repo-owner, $user);
+    $new-url.subst-mutate('https://github.com/', 'git@github.com:');
+    $new-url.subst-mutate(/\/$/, '.git');
+    my $command = "cd $module-path; git remote origin set-url $new-url";
+    say $command;
+    # qqx{$command};
+}
+
 sub MAIN($user, Bool :$update = False) {
     my $proto-file = $*SPEC.catfile($*PROGRAM_NAME.IO.dirname, "proto.json");
     if !$proto-file.IO.e or $update {
@@ -44,7 +54,11 @@ sub MAIN($user, Bool :$update = False) {
         my $module-path = $*SPEC.catfile("ecosystem", $repo-url.split(rx/\//)[*-2]);
         clone-repo($repo-url) unless $module-path.IO.e;
         my $unit-is-required = report-unit-required($module-path);
-        fork-repo($repo-url, $user) if $unit-is-required;
+        if $unit-is-required {
+            fork-repo($repo-url, $user);
+            my $repo-owner = %module-data{'auth'};
+            update-repo-origin($module-path, $repo-url, $repo-owner, $user);
+        }
     }
 }
 
