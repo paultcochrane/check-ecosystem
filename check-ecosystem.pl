@@ -91,6 +91,7 @@ sub MAIN($user, Bool :$update = False) {
     my %ecosystem := from-json($proto-json);
     my @ecosystem-keys = %ecosystem.keys.sort;
     for @ecosystem-keys -> $key {
+    say @ecosystem-keys.elems ~ " modules in ecosystem to be checked";
         my %module-data := %ecosystem{$key};
         my $repo-url = %module-data{'url'};
         my $module-path = $*SPEC.catfile($ecosystem-path, $repo-url.split(rx/\//)[*-2]);
