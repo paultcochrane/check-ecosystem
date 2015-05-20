@@ -16,8 +16,8 @@ sub user-forks($user) {
     return @fork-names;
 }
 
-sub clone-repo($repo-url) {
-    my $command = "cd ecosystem; git clone $repo-url";
+sub clone-repo($repo-url, $ecosystem-path) {
+    my $command = "cd $ecosystem-path; git clone $repo-url";
     qqx{$command};
 }
 
@@ -71,7 +71,8 @@ sub MAIN($user, Bool :$update = False) {
     }
     my $proto-json = $proto-file.IO.slurp;
 
-    mkdir "ecosystem" unless "ecosystem".IO.e;
+    my $ecosystem-path = "ecosystem";
+    mkdir $ecosystem-path unless $ecosystem-path.IO.e;
 
     my @user-forks = user-forks($user);
 
@@ -80,8 +81,8 @@ sub MAIN($user, Bool :$update = False) {
     for @ecosystem-keys -> $key {
         my %module-data := %ecosystem{$key};
         my $repo-url = %module-data{'url'};
-        my $module-path = $*SPEC.catfile("ecosystem", $repo-url.split(rx/\//)[*-2]);
-        clone-repo($repo-url) unless $module-path.IO.e;
+        my $module-path = $*SPEC.catfile($ecosystem-path, $repo-url.split(rx/\//)[*-2]);
+        clone-repo($repo-url, $ecosystem-path) unless $module-path.IO.e;
         my $unit-is-required = report-unit-required($module-path);
         if $unit-is-required {
             my $repo-path = $repo-url.subst('https://github.com/', '');
