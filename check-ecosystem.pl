@@ -3,10 +3,15 @@ use v6;
 use JSON::Tiny;
 use LWP::Simple;
 
-sub user-repos($user) {
+sub user-forks($user) {
     my $repo-json = LWP::Simple.get("https://api.github.com/users/$user/repos?per_page=1000");
     my $repo-data = from-json($repo-json);
-    my @full-names = $repo-data.values>>{'full_name'};
+    my @repos = $repo-data.values;
+    my @full-names;
+    for @repos -> $repo {
+        @full-names.push($repo{'full_name'}) if $repo{'fork'};
+    }
+    return @full-names;
 }
 
 sub clone-repo($repo-url) {
@@ -50,6 +55,8 @@ sub MAIN($user, Bool :$update = False) {
     my $proto-json = $proto-file.IO.slurp;
 
     mkdir "ecosystem" unless "ecosystem".IO.e;
+
+    my @user-forks = user-forks($user);
 
     my %ecosystem := from-json($proto-json);
     my @ecosystem-keys = %ecosystem.keys.sort;
