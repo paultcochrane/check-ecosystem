@@ -68,6 +68,13 @@ sub create-unit-branch($module-path) {
     qqx{$command};
 }
 
+sub has-unit-branch($module-path) {
+    my $command = "cd $module-path; git branch --list pr/add-unit-declarator";
+    my $output = qqx{$command};
+
+    return $output !~~ Nil;
+}
+
 sub MAIN($user, Bool :$update = False) {
     my $proto-file = $*SPEC.catfile($*PROGRAM_NAME.IO.dirname, "proto.json");
     if !$proto-file.IO.e or $update {
@@ -95,7 +102,7 @@ sub MAIN($user, Bool :$update = False) {
             my $repo-owner = %module-data{'auth'};
             update-repo-origin($module-path, $repo-url, $repo-owner, $user)
                 unless has-user-origin($module-path, $repo-url, $repo-owner, $user);
-            create-unit-branch($module-path);
+            create-unit-branch($module-path) unless has-unit-branch($module-path);
         }
     }
 }
