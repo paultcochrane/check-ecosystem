@@ -47,7 +47,7 @@ sub update-repo-origin($module-path, $repo-url, $repo-owner, $user) {
     my $new-url = $repo-url.subst($repo-owner, $user);
     $new-url.subst-mutate('https://github.com/', 'git@github.com:');
     $new-url.subst-mutate(/\/$/, '.git');
-    my $command = "cd $module-path; git remote origin set-url $new-url";
+    my $command = "cd $module-path; git remote set-url origin $new-url";
     say $command;
     # qqx{$command};
 }
