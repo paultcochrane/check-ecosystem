@@ -34,8 +34,7 @@ sub report-unit-required($module-path) {
 sub fork-repo($repo-path, $user) {
     say "Forking $repo-path";
     my $command = "curl -u '$user' -X POST https://api.github.com/repos/$repo-path" ~ "forks";
-    say $command;
-    # qqx{$command};
+    qqx{$command};
 }
 
 sub has-been-forked($repo-path, @user-forks) {
@@ -48,8 +47,7 @@ sub update-repo-origin($module-path, $repo-url, $repo-owner, $user) {
     $new-url.subst-mutate('https://github.com/', 'git@github.com:');
     $new-url.subst-mutate(/\/$/, '.git');
     my $command = "cd $module-path; git remote set-url origin $new-url";
-    say $command;
-    # qqx{$command};
+    qqx{$command};
 }
 
 sub has-user-origin($module-path, $repo-url, $repo-owner, $user) {
