@@ -23,7 +23,7 @@ sub clone-repo($repo-url, $ecosystem-path) {
 
 sub report-unit-required($module-path) {
     print "Checking $module-path... ";
-    my $command = "cd $module-path; git grep '^\\(module\\|class\\|grammar\\).*;\\s*\$'";
+    my $command = "cd $module-path; " ~ 'git grep \'^\(module\|class\|grammar\).*[^{}];\s*$\'';
     my $output = qqx{$command};
     $output ?? say "Found unitless, blockless module/class/grammar declarator"
             !! say "Looks ok";
