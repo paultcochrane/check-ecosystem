@@ -3,6 +3,11 @@ use v6;
 use JSON::Tiny;
 use LWP::Simple;
 
+sub user-repos($user) {
+    my $repo-json = LWP::Simple.get("https://api.github.com/users/$user/repos");
+    my $repo-data = from-json($repo-json);
+}
+
 sub clone-repo($repo-url) {
     my $command = "cd ecosystem; git clone $repo-url";
     qqx{$command};
