@@ -52,6 +52,15 @@ sub update-repo-origin($module-path, $repo-url, $repo-owner, $user) {
     # qqx{$command};
 }
 
+sub has-user-origin($module-path, $repo-url, $repo-owner, $user) {
+    my $origin-url = qqx{cd $module-path; git config remote.origin.url}.chomp;
+    my $new-url = $repo-url.subst($repo-owner, $user);
+    $new-url.subst-mutate('https://github.com/', 'git@github.com:');
+    $new-url.subst-mutate(/\/$/, '.git');
+
+    return $origin-url eq $new-url;
+}
+
 sub MAIN($user, Bool :$update = False) {
     my $proto-file = $*SPEC.catfile($*PROGRAM_NAME.IO.dirname, "proto.json");
     if !$proto-file.IO.e or $update {
@@ -76,7 +85,8 @@ sub MAIN($user, Bool :$update = False) {
             my $repo-path = $repo-url.subst('https://github.com/', '');
             fork-repo($repo-path, $user) unless has-been-forked($repo-path, @user-forks);
             my $repo-owner = %module-data{'auth'};
-            update-repo-origin($module-path, $repo-url, $repo-owner, $user);
+            update-repo-origin($module-path, $repo-url, $repo-owner, $user)
+                unless has-user-origin($module-path, $repo-url, $repo-owner, $user);
         }
     }
 }
