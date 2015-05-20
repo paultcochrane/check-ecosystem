@@ -21,6 +21,17 @@ sub clone-repo($repo-url, $ecosystem-path) {
     qqx{$command};
 }
 
+sub update-repo($module-path) {
+    say "Updating $module-path";
+    my $origin-url = origin-url($module-path);
+    if $origin-url ~~ / 'https://github.com' / {
+        qqx{cd $module-path; git pull};
+    }
+    else {
+        qqx{cd $module-path; git fetch upstream master; git merge upstream/master};
+    }
+}
+
 sub origin-url($module-path) {
     qqx{cd $module-path; git config remote.origin.url}.chomp;
 }
@@ -100,6 +111,7 @@ sub MAIN($user, Bool :$update = False) {
         my $repo-url = %module-data{'url'};
         my $module-path = $*SPEC.catfile($ecosystem-path, $repo-url.split(rx/\//)[*-2]);
         clone-repo($repo-url, $ecosystem-path) unless $module-path.IO.e;
+        update-repo($module-path) if $update;
         my $unit-is-required = report-unit-required($module-path);
         if $unit-is-required {
             my $repo-path = $repo-url.subst('https://github.com/', '');
