@@ -7,11 +7,13 @@ sub user-forks($user) {
     my $repo-json = LWP::Simple.get("https://api.github.com/users/$user/repos?per_page=1000");
     my $repo-data = from-json($repo-json);
     my @repos = $repo-data.values;
-    my @full-names;
+    my @fork-names;
     for @repos -> $repo {
-        @full-names.push($repo{'full_name'}) if $repo{'fork'};
+        my $full-name = $repo{'full_name'};
+        my $fork-name = $full-name.split(/\//)[*-1];
+        @fork-names.push($fork-name) if $repo{'fork'};
     }
-    return @full-names;
+    return @fork-names;
 }
 
 sub clone-repo($repo-url) {
