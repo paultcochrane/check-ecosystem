@@ -48,6 +48,10 @@ sub update-repo-origin($module-path, $repo-url, $repo-owner, $user) {
     $new-url.subst-mutate(/\/$/, '.git');
     my $command = "cd $module-path; git remote set-url origin $new-url";
     qqx{$command};
+    my $upstream-url = $repo-url.subst('https://github.com/', 'git@github.com:');
+    $upstream-url.subst-mutate(/\/$/, '.git');
+    $command = "cd $module-path; git remote add upstream $upstream-url";
+    qqx{$command};
 }
 
 sub has-user-origin($module-path, $repo-url, $repo-owner, $user) {
