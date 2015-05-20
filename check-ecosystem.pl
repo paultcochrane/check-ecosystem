@@ -85,9 +85,9 @@ sub create-unit-branch($module-path) {
 
 sub has-unit-branch($module-path) {
     my $command = "cd $module-path; git branch --list pr/add-unit-declarator";
-    my $output = qqx{$command};
+    my $output = qqx{$command}.chomp;
 
-    return $output !~~ Nil;
+    return $output !~~ '';
 }
 
 sub MAIN($user, Bool :$update = False) {
