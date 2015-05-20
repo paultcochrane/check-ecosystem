@@ -4,7 +4,7 @@ use JSON::Tiny;
 use LWP::Simple;
 
 sub user-repos($user) {
-    my $repo-json = LWP::Simple.get("https://api.github.com/users/$user/repos");
+    my $repo-json = LWP::Simple.get("https://api.github.com/users/$user/repos?per-page=1000");
     my $repo-data = from-json($repo-json);
 }
 
