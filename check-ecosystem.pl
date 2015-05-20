@@ -38,6 +38,10 @@ sub fork-repo($repo-path, $user) {
     # qqx{$command};
 }
 
+sub has-been-forked($repo-path, @user-forks) {
+    return $repo-path.split(/\//)[*-2] ~~ @user-forks.any
+}
+
 sub update-repo-origin($module-path, $repo-url, $repo-owner, $user) {
     say "Pointing repo's origin to $user\'s fork";
     my $new-url = $repo-url.subst($repo-owner, $user);
@@ -70,7 +74,7 @@ sub MAIN($user, Bool :$update = False) {
         my $unit-is-required = report-unit-required($module-path);
         if $unit-is-required {
             my $repo-path = $repo-url.subst('https://github.com/', '');
-            fork-repo($repo-path, $user) unless $repo-path ~~ @user-repos;
+            fork-repo($repo-path, $user) unless has-been-forked($repo-path, @user-forks);
             my $repo-owner = %module-data{'auth'};
             update-repo-origin($module-path, $repo-url, $repo-owner, $user);
         }
