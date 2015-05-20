@@ -21,6 +21,10 @@ sub clone-repo($repo-url, $ecosystem-path) {
     qqx{$command};
 }
 
+sub origin-url($module-path) {
+    qqx{cd $module-path; git config remote.origin.url}.chomp;
+}
+
 sub report-unit-required($module-path) {
     print "Checking $module-path... ";
     my $command = "cd $module-path; " ~ 'git grep \'^\(module\|class\|grammar\).*[^{}];\s*$\'';
@@ -55,7 +59,7 @@ sub update-repo-origin($module-path, $repo-url, $repo-owner, $user) {
 }
 
 sub has-user-origin($module-path, $repo-url, $repo-owner, $user) {
-    my $origin-url = qqx{cd $module-path; git config remote.origin.url}.chomp;
+    my $origin-url = origin-url($module-path);
     my $new-url = $repo-url.subst($repo-owner, $user);
     $new-url.subst-mutate('https://github.com/', 'git@github.com:');
     $new-url.subst-mutate(/\/$/, '.git');
