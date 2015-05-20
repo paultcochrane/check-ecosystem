@@ -71,7 +71,7 @@ sub MAIN($user, Bool :$update = False) {
     }
     my $proto-json = $proto-file.IO.slurp;
 
-    my $ecosystem-path = "ecosystem";
+    my $ecosystem-path = "/tmp/ecosystem";
     mkdir $ecosystem-path unless $ecosystem-path.IO.e;
 
     my @user-forks = user-forks($user);
