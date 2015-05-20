@@ -24,9 +24,8 @@ sub report-unit-required($module-path) {
     return $output !~~ '';
 }
 
-sub fork-repo($repo-url, $user) {
-    say "Forking $repo-url";
-    my $repo-path = $repo-url.subst('https://github.com/', '');
+sub fork-repo($repo-path, $user) {
+    say "Forking $repo-path";
     my $command = "curl -u '$user' -X POST https://api.github.com/repos/$repo-path" ~ "forks";
     say $command;
     # qqx{$command};
@@ -61,7 +60,8 @@ sub MAIN($user, Bool :$update = False) {
         clone-repo($repo-url) unless $module-path.IO.e;
         my $unit-is-required = report-unit-required($module-path);
         if $unit-is-required {
-            fork-repo($repo-url, $user);
+            my $repo-path = $repo-url.subst('https://github.com/', '');
+            fork-repo($repo-path, $user) unless $repo-path ~~ @user-repos;
             my $repo-owner = %module-data{'auth'};
             update-repo-origin($module-path, $repo-url, $repo-owner, $user);
         }
