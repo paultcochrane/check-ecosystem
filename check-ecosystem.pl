@@ -6,6 +6,7 @@ use LWP::Simple;
 sub user-repos($user) {
     my $repo-json = LWP::Simple.get("https://api.github.com/users/$user/repos?per_page=1000");
     my $repo-data = from-json($repo-json);
+    my @full-names = $repo-data.values>>{'full_name'};
 }
 
 sub clone-repo($repo-url) {
