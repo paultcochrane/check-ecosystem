@@ -77,7 +77,7 @@ sub origin-url($module-path) {
 #| report if the unit declarator is required
 sub report-unit-required($module-path) {
     print "Checking $module-path... ";
-    my $command = "cd $module-path; " ~ 'git grep \'^\(module\|class\|grammar\).*[^{}];\s*$\'';
+    my $command = "cd $module-path; " ~ 'git grep \'^\(module\|class\|grammar\|role\).*[^{}];\s*$\'';
     my $output = qqx{$command};
     $output ?? say "Found unitless, blockless module/class/grammar declarator"
             !! say "Looks ok";
