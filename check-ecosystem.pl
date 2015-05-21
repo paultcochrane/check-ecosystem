@@ -37,6 +37,7 @@ sub MAIN($user, Bool :$update = False) {
     }
 }
 
+#| return a list of the forks in the given user's GitHub account
 sub user-forks($user) {
     my $repo-json = LWP::Simple.get("https://api.github.com/users/$user/repos?per_page=1000");
     my $repo-data = from-json($repo-json);
@@ -50,11 +51,13 @@ sub user-forks($user) {
     return @fork-names;
 }
 
+#| clone the given repo into the ecosystem path
 sub clone-repo($repo-url, $ecosystem-path) {
     my $command = "cd $ecosystem-path; git clone $repo-url";
     qqx{$command};
 }
 
+#| update the repo at the given path
 sub update-repo($module-path) {
     say "Updating $module-path";
     my $origin-url = origin-url($module-path);
@@ -66,10 +69,12 @@ sub update-repo($module-path) {
     }
 }
 
+#| return the URL of the repo's origin repo
 sub origin-url($module-path) {
     qqx{cd $module-path; git config remote.origin.url}.chomp;
 }
 
+#| report if the unit declarator is required
 sub report-unit-required($module-path) {
     print "Checking $module-path... ";
     my $command = "cd $module-path; " ~ 'git grep \'^\(module\|class\|grammar\).*[^{}];\s*$\'';
@@ -80,16 +85,19 @@ sub report-unit-required($module-path) {
     return $output !~~ '';
 }
 
+#| fork the given repository into the given user's GitHub account
 sub fork-repo($repo-path, $user) {
     say "Forking $repo-path";
     my $command = "curl -u '$user' -X POST https://api.github.com/repos/$repo-path" ~ "forks";
     qqx{$command};
 }
 
+#| determine if a fork of the given repo already exists in the user's forks
 sub has-been-forked($repo-path, @user-forks) {
     return $repo-path.split(/\//)[*-2] ~~ @user-forks.any
 }
 
+#| point repo's origin to the user's fork
 sub update-repo-origin($module-path, $repo-url, $repo-owner, $user) {
     say "Pointing repo's origin to $user\'s fork";
     my $new-url = $repo-url.subst($repo-owner, $user);
@@ -103,6 +111,7 @@ sub update-repo-origin($module-path, $repo-url, $repo-owner, $user) {
     qqx{$command};
 }
 
+#| determine if the repo already uses the user's fork as origin
 sub has-user-origin($module-path, $repo-url, $repo-owner, $user) {
     my $origin-url = origin-url($module-path);
     my $new-url = $repo-url.subst($repo-owner, $user);
@@ -112,11 +121,13 @@ sub has-user-origin($module-path, $repo-url, $repo-owner, $user) {
     return $origin-url eq $new-url;
 }
 
+#| create a branch for the unit declarator pull request
 sub create-unit-branch($module-path) {
     my $command = "cd $module-path; git co -b pr/add-unit-declarator";
     qqx{$command};
 }
 
+#| determine if the repo has a unit declarator branch
 sub has-unit-branch($module-path) {
     my $command = "cd $module-path; git branch --list pr/add-unit-declarator";
     my $output = qqx{$command}.chomp;
