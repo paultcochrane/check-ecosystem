@@ -3,6 +3,40 @@ use v6;
 use JSON::Tiny;
 use LWP::Simple;
 
+sub MAIN($user, Bool :$update = False) {
+    my $proto-file = $*SPEC.catfile($*PROGRAM_NAME.IO.dirname, "proto.json");
+    if !$proto-file.IO.e or $update {
+        say "Fetching proto.json from modules.perl6.org";
+        LWP::Simple.getstore("http://modules.perl6.org/proto.json", "proto.json");
+    }
+    my $proto-json = $proto-file.IO.slurp;
+
+    my $ecosystem-path = "/tmp/ecosystem";
+    mkdir $ecosystem-path unless $ecosystem-path.IO.e;
+
+    my @user-forks = user-forks($user);
+
+    my %ecosystem := from-json($proto-json);
+    my @ecosystem-keys = %ecosystem.keys.sort;
+    say @ecosystem-keys.elems ~ " modules in ecosystem to be checked";
+    for @ecosystem-keys -> $key {
+        my %module-data := %ecosystem{$key};
+        my $repo-url = %module-data{'url'};
+        my $module-path = $*SPEC.catfile($ecosystem-path, $repo-url.split(rx/\//)[*-2]);
+        clone-repo($repo-url, $ecosystem-path) unless $module-path.IO.e;
+        update-repo($module-path) if $update;
+        my $unit-is-required = report-unit-required($module-path);
+        if $unit-is-required {
+            my $repo-path = $repo-url.subst('https://github.com/', '');
+            fork-repo($repo-path, $user) unless has-been-forked($repo-path, @user-forks);
+            my $repo-owner = %module-data{'auth'};
+            update-repo-origin($module-path, $repo-url, $repo-owner, $user)
+                unless has-user-origin($module-path, $repo-url, $repo-owner, $user);
+            create-unit-branch($module-path) unless has-unit-branch($module-path);
+        }
+    }
+}
+
 sub user-forks($user) {
     my $repo-json = LWP::Simple.get("https://api.github.com/users/$user/repos?per_page=1000");
     my $repo-data = from-json($repo-json);
@@ -88,40 +122,6 @@ sub has-unit-branch($module-path) {
     my $output = qqx{$command}.chomp;
 
     return $output !~~ '';
-}
-
-sub MAIN($user, Bool :$update = False) {
-    my $proto-file = $*SPEC.catfile($*PROGRAM_NAME.IO.dirname, "proto.json");
-    if !$proto-file.IO.e or $update {
-        say "Fetching proto.json from modules.perl6.org";
-        LWP::Simple.getstore("http://modules.perl6.org/proto.json", "proto.json");
-    }
-    my $proto-json = $proto-file.IO.slurp;
-
-    my $ecosystem-path = "/tmp/ecosystem";
-    mkdir $ecosystem-path unless $ecosystem-path.IO.e;
-
-    my @user-forks = user-forks($user);
-
-    my %ecosystem := from-json($proto-json);
-    my @ecosystem-keys = %ecosystem.keys.sort;
-    for @ecosystem-keys -> $key {
-    say @ecosystem-keys.elems ~ " modules in ecosystem to be checked";
-        my %module-data := %ecosystem{$key};
-        my $repo-url = %module-data{'url'};
-        my $module-path = $*SPEC.catfile($ecosystem-path, $repo-url.split(rx/\//)[*-2]);
-        clone-repo($repo-url, $ecosystem-path) unless $module-path.IO.e;
-        update-repo($module-path) if $update;
-        my $unit-is-required = report-unit-required($module-path);
-        if $unit-is-required {
-            my $repo-path = $repo-url.subst('https://github.com/', '');
-            fork-repo($repo-path, $user) unless has-been-forked($repo-path, @user-forks);
-            my $repo-owner = %module-data{'auth'};
-            update-repo-origin($module-path, $repo-url, $repo-owner, $user)
-                unless has-user-origin($module-path, $repo-url, $repo-owner, $user);
-            create-unit-branch($module-path) unless has-unit-branch($module-path);
-        }
-    }
 }
 
 # vim: expandtab shiftwidth=4 ft=perl6
