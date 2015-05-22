@@ -39,7 +39,7 @@ sub MAIN($user, Bool :$update = False) {
 
 #| return a list of the forks in the given user's GitHub account
 sub user-forks($user) {
-    my $repo-json = LWP::Simple.get("https://api.github.com/users/$user/repos?per_page=1000");
+    my $repo-json = LWP::Simple.get("https://api.github.com/users/$user/repos?per_page=100");
     my $repo-data = from-json($repo-json);
     my @repos = $repo-data.values;
     my @fork-names;
