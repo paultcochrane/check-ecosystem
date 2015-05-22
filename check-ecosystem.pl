@@ -28,7 +28,7 @@ sub MAIN($user, Bool :$update = False) {
         my $unit-is-required = report-unit-required($module-path);
         if $unit-is-required {
             my $repo-path = $repo-url.subst('https://github.com/', '');
-            fork-repo($repo-path, $user) unless has-been-forked($repo-path, @user-forks);
+            fork-repo($repo-path, $user) if should-be-forked($repo-path, $user, @user-forks);
             my $repo-owner = %module-data{'auth'};
             update-repo-origin($module-path, $repo-url, $repo-owner, $user)
                 unless has-user-origin($module-path, $repo-url, $repo-owner, $user);
@@ -105,9 +105,14 @@ sub fork-repo($repo-path, $user) {
     qqx{$command};
 }
 
-#| determine if a fork of the given repo already exists in the user's forks
-sub has-been-forked($repo-path, @user-forks) {
-    return $repo-path.split(/\//)[*-2] ~~ @user-forks.any
+#| determine if the given repo needs to be forked
+sub should-be-forked($repo-path, $user, @user-forks) {
+    if $repo-path ~~ /$user/ {
+        return False;  # it's the user's repo; no fork needed
+    }
+    else {
+        return $repo-path.split(/\//)[*-2] !~~ @user-forks.any;
+    }
 }
 
 #| point repo's origin to the user's fork
