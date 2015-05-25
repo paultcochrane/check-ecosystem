@@ -19,6 +19,7 @@ sub MAIN($user, Bool :$update = False) {
     my %ecosystem := from-json($proto-json);
     my @ecosystem-keys = %ecosystem.keys.sort;
     say @ecosystem-keys.elems ~ " modules in ecosystem to be checked";
+    my @unitless-modules;
     for @ecosystem-keys -> $key {
         my %module-data := %ecosystem{$key};
         my $repo-url = %module-data{'url'};
@@ -32,8 +33,17 @@ sub MAIN($user, Bool :$update = False) {
             update-repo-origin($module-path, $repo-url, $repo-owner, $user)
                 unless has-user-origin($module-path, $repo-url, $repo-owner, $user);
             create-unit-branch($module-path) unless has-unit-branch($module-path);
+            push @unitless-modules, $module-path;
         }
     }
+    say "Checkout paths of modules with unitless declarators: ";
+    say @unitless-modules.join("\n");
+
+    my $num-unitless-modules = @unitless-modules.elems;
+    my $num-ecosystem-modules = @ecosystem-keys.elems;
+    say "Modules still to be updated: " ~
+        "$num-unitless-modules of $num-ecosystem-modules (" ~
+        (@unitless-modules.elems*100/@ecosystem-keys.elems).fmt("%02d") ~ "%)";
 }
 
 #| return a list of the forks in the given user's GitHub account
