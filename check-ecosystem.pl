@@ -25,8 +25,7 @@ sub MAIN($user, Bool :$update = False) {
         my $module-path = $*SPEC.catfile($ecosystem-path, $repo-url.split(rx/\//)[*-2]);
         clone-repo($repo-url, $ecosystem-path) unless $module-path.IO.e;
         update-repo($module-path) if $update;
-        my $unit-is-required = report-unit-required($module-path);
-        if $unit-is-required {
+        if unit-required($module-path) {
             my $repo-path = $repo-url.subst('https://github.com/', '');
             fork-repo($repo-path, $user) if should-be-forked($repo-path, $user, @user-forks);
             my $repo-owner = %module-data{'auth'};
@@ -86,8 +85,8 @@ sub origin-url($module-path) {
     qqx{cd $module-path; git config remote.origin.url}.chomp;
 }
 
-#| report if the unit declarator is required
-sub report-unit-required($module-path) {
+#| check if the unit declarator is required
+sub unit-required($module-path) {
     print "Checking $module-path... ";
     # TODO: only check *.pl, *.p6, *.pm and *.pm6 files
     my $command = "cd $module-path; " ~ 'git grep \'^\(module\|class\|grammar\|role\).*[^{}];\s*$\'';
