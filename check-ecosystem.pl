@@ -87,6 +87,7 @@ sub update-repo($module-path) {
     }
     else {
         qqx{cd $module-path; git fetch upstream master; git merge upstream/master};
+        qqx{cd $module-path; git pull origin pr/add-unit-declarator};
     }
 }
 
