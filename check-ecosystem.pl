@@ -24,7 +24,12 @@ sub MAIN($user, Bool :$update = False) {
     for @ecosystem-keys -> $key {
         my %module-data := %ecosystem{$key};
         my $repo-url = %module-data{'url'};
-        my $module-path = $*SPEC.catfile($ecosystem-path, $repo-url.split(rx/\//)[*-2]);
+        my $repo-dir-name = $repo-url.split(rx/\//)[*-2];
+        unless $repo-dir-name {
+            say "Module '$key' has an invalid GitHub url: '$repo-url'";
+            next;
+        }
+        my $module-path = $*SPEC.catfile($ecosystem-path, $repo-dir-name);
         clone-repo($repo-url, $ecosystem-path) unless $module-path.IO.e;
         update-repo($module-path) if $update;
         if unit-required($module-path) {
