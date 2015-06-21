@@ -2,6 +2,7 @@ use v6;
 
 use JSON::Tiny;
 use LWP::Simple;
+use File::Find;
 
 sub MAIN($user, Bool :$update = False) {
     my $proto-file = $*SPEC.catfile($*PROGRAM_NAME.IO.dirname, "proto.json");
@@ -99,13 +100,25 @@ sub origin-url($module-path) {
 #| check if the unit declarator is required
 sub unit-required($module-path) {
     print "Checking $module-path... ";
-    # TODO: only check *.pl, *.p6, *.pm and *.pm6 files
-    my $command = "cd $module-path; " ~ 'git grep \'^\(module\|class\|grammar\|role\).*[^{}];\s*$\'';
-    my $output = qqx{$command};
-    $output ?? say "Found unitless, blockless module/class/grammar declarator"
-            !! say "Looks ok";
+    my @files := find(:dir($module-path), :type("file"),
+                        :name(/ \.pl$ || \.p6$ || \.t$ || \.pm$ || \.pm6$ /));
+    my @unitless-files;
+    for @files -> $file {
+        my @lines = $file.IO.lines;
+        push @unitless-files, $file
+            if @lines.grep(/ ^(module||class||grammar||role).* <-[{}]> \; \s*$ /);
+    }
 
-    return $output !~~ '';
+    if @unitless-files {
+        say "Found unitless, blockless module/class/grammar/role declarator";
+        say "Affected files:";
+        say @unitless-files.join("\n");
+    }
+    else {
+        say "Looks ok";
+    }
+
+    return @unitless-files.Bool;
 }
 
 #| fork the given repository into the given user's GitHub account
