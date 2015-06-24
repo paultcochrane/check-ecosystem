@@ -139,7 +139,9 @@ sub should-be-forked($repo-path, $user, @user-forks) {
         return False;  # it's the user's repo; no fork needed
     }
     else {
-        return $repo-path.split(/\//)[*-2] !~~ @user-forks.any;
+        my $repo-name = $repo-path.split(/\//)[*-1];
+        $repo-name ~~ s/\.git$//;
+        return $repo-name !~~ @user-forks.any;
     }
 }
 
