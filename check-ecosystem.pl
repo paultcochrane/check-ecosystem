@@ -88,7 +88,7 @@ sub clone-repo($repo-url, $ecosystem-path) {
 sub update-repo($module-path) {
     say "Updating $module-path";
     my $origin-url = origin-url($module-path);
-    if $origin-url ~~ / 'https://github.com' / {
+    if $origin-url ~~ / 'git://github.com' || 'https://github.com' / {
         qqx{cd $module-path; git pull};
     }
     else {
