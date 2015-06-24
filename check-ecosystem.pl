@@ -46,10 +46,10 @@ sub MAIN($user, Bool :$update = False) {
     say @unitless-modules.join("\n");
 
     my $num-unitless-modules = @unitless-modules.elems;
-    my $num-ecosystem-modules = @ecosystem-keys.elems;
+    my $num-ecosystem-modules = @ecosystem-modules.elems;
     say "Modules still to be updated: " ~
         "$num-unitless-modules of $num-ecosystem-modules (" ~
-        (@unitless-modules.elems*100/@ecosystem-keys.elems).fmt("%02d") ~ "%)";
+        ($num-unitless-modules*100/$num-ecosystem-modules).fmt("%02d") ~ "%)";
 }
 
 #| return a list of the forks in the given user's GitHub account
