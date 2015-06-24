@@ -129,7 +129,7 @@ sub unit-required($module-path) {
 #| fork the given repository into the given user's GitHub account
 sub fork-repo($repo-path, $user) {
     say "Forking $repo-path";
-    my $command = "curl -u '$user' -X POST https://api.github.com/repos/$repo-path" ~ "forks";
+    my $command = "curl -u '$user' -X POST https://api.github.com/repos/$repo-path/" ~ "forks";
     qqx{$command};
 }
 
