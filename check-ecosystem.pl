@@ -146,15 +146,16 @@ sub should-be-forked($repo-path, $user, @user-forks) {
 }
 
 #| point repo's origin to the user's fork
-sub update-repo-origin($module-path, $repo-url, $repo-owner, $user) {
+sub update-repo-origin($module-path, $repo-url, $user) {
     say "Pointing repo's origin to $user\'s fork";
-    my $new-url = $repo-url.subst($repo-owner, $user);
-    $new-url.subst-mutate('https://github.com/', 'git@github.com:');
-    $new-url.subst-mutate(/\/$/, '.git');
+    my $new-url = $repo-url.subst('git://github.com/', 'git@github.com:');
+    $new-url ~~ m/ \: ( .* ) \/ /;
+    my $repo-owner = $0;
+    $new-url ~~ s/$repo-owner/$user/;
     my $command = "cd $module-path; git remote set-url origin $new-url";
     qqx{$command};
-    my $upstream-url = $repo-url.subst('https://github.com/', 'git@github.com:');
-    $upstream-url.subst-mutate(/\/$/, '.git');
+
+    my $upstream-url = $repo-url.subst('git://github.com/', 'git@github.com:');
     $command = "cd $module-path; git remote add upstream $upstream-url";
     qqx{$command};
 }
