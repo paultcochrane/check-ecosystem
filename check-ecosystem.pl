@@ -21,23 +21,25 @@ sub MAIN($user, Bool :$update = False) {
 
     say @ecosystem-modules.elems ~ " modules in ecosystem to be checked";
     my @unitless-modules;
-    for @ecosystem-keys -> $key {
-        my %module-data := %ecosystem{$key};
-        my $repo-url = %module-data{'url'};
-        my $repo-dir-name = $repo-url.split(rx/\//)[*-2];
+    for @ecosystem-modules -> $module {
+        my %module-data := $module;
+        my $repo-url = %module-data{'source-url'} // %module-data{'repo-url'} // %module-data{'support'}{'source'};
+        my $name = %module-data{"name"};
+        my $repo-dir-name = $repo-url.split(rx/\//)[*-1];
+        $repo-dir-name ~~ s/\.git//;
         unless $repo-dir-name {
-            say "Module '$key' has an invalid GitHub url: '$repo-url'";
+            say "Module '$name has an invalid GitHub url: '$repo-url'";
             next;
         }
         my $module-path = $*SPEC.catfile($ecosystem-path, $repo-dir-name);
         clone-repo($repo-url, $ecosystem-path) unless $module-path.IO.e;
         update-repo($module-path) if $update;
         if unit-required($module-path) {
-            my $repo-path = $repo-url.subst('https://github.com/', '');
+            my $repo-path = $repo-url.subst('git://github.com/', '');
+            $repo-path ~~ s/\.git$//;
             fork-repo($repo-path, $user) if should-be-forked($repo-path, $user, @user-forks);
-            my $repo-owner = %module-data{'auth'};
-            update-repo-origin($module-path, $repo-url, $repo-owner, $user)
-                unless has-user-origin($module-path, $repo-url, $repo-owner, $user);
+            update-repo-origin($module-path, $repo-url, $user)
+                unless has-user-origin($module-path, $repo-url, $user);
             create-unit-branch($module-path) unless has-unit-branch($module-path);
             push @unitless-modules, $module-path;
         }
