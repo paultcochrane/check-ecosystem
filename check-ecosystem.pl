@@ -5,21 +5,21 @@ use LWP::Simple;
 use File::Find;
 
 sub MAIN($user, Bool :$update = False) {
-    my $proto-file = $*SPEC.catfile($*PROGRAM_NAME.IO.dirname, "proto.json");
-    if !$proto-file.IO.e or $update {
-        say "Fetching proto.json from modules.perl6.org";
-        LWP::Simple.getstore("http://modules.perl6.org/proto.json", "proto.json");
+    my $projects-file = $*SPEC.catfile($*PROGRAM_NAME.IO.dirname, "projects.json");
+    if !$projects-file.IO.e or $update {
+        say "Fetching projects.json from modules.perl6.org";
+        LWP::Simple.getstore("http://ecosystem-api.p6c.org/projects.json", "projects.json");
     }
-    my $proto-json = $proto-file.IO.slurp;
+    my $projects-json = $projects-file.IO.slurp;
 
     my $ecosystem-path = "/tmp/ecosystem";
     mkdir $ecosystem-path unless $ecosystem-path.IO.e;
 
     my @user-forks = user-forks($user);
 
-    my %ecosystem := from-json($proto-json);
-    my @ecosystem-keys = %ecosystem.keys.sort;
-    say @ecosystem-keys.elems ~ " modules in ecosystem to be checked";
+    my @ecosystem-modules := from-json($projects-json);
+
+    say @ecosystem-modules.elems ~ " modules in ecosystem to be checked";
     my @unitless-modules;
     for @ecosystem-keys -> $key {
         my %module-data := %ecosystem{$key};
