@@ -175,7 +175,7 @@ sub has-user-origin($module-path, $repo-url, $user) {
 
 #| create a branch for the unit declarator pull request
 sub create-unit-branch($module-path) {
-    my $command = "cd $module-path; git co -b pr/add-unit-declarator";
+    my $command = "cd $module-path; git checkout master; git checkout -b pr/add-unit-declarator";
     qqx{$command};
 }
 
