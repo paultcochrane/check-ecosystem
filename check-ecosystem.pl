@@ -21,6 +21,7 @@ sub MAIN($user, Bool :$update = False) {
 
     say @ecosystem-modules.elems ~ " modules in ecosystem to be checked";
     my @unitless-modules;
+    my @modules-needing-kebab-case-test-funs;
     for @ecosystem-modules -> $module {
         my %module-data := $module;
         my $repo-url = %module-data{'source-url'} // %module-data{'repo-url'} // %module-data{'support'}{'source'};
@@ -43,6 +44,15 @@ sub MAIN($user, Bool :$update = False) {
             create-unit-branch($module-path) unless has-unit-branch($module-path);
             push @unitless-modules, $module-path;
         }
+        if kebab-case-test-functions($module-path) {
+            my $repo-path = $repo-url.subst('git://github.com/', '');
+            $repo-path ~~ s/\.git$//;
+            fork-repo($repo-path, $user) if should-be-forked($repo-path, $user, @user-forks);
+            update-repo-origin($module-path, $repo-url, $user)
+                unless has-user-origin($module-path, $repo-url, $user);
+            create-kebab-case-branch($module-path) unless has-kebab-case-branch($module-path);
+            push @modules-needing-kebab-case-test-funs, $module-path;
+        }
     }
     say "Checkout paths of modules with unitless declarators: ";
     say @unitless-modules.join("\n");
@@ -52,6 +62,15 @@ sub MAIN($user, Bool :$update = False) {
     say "Modules still to be updated: " ~
         "$num-unitless-modules of $num-ecosystem-modules (" ~
         ($num-unitless-modules*100/$num-ecosystem-modules).fmt("%02d") ~ "%)";
+
+    say "Checkout paths of modules requiring kebab-case test functions: ";
+    say @modules-needing-kebab-case-test-funs.join("\n");
+
+    my $num-kebab-case-modules = @modules-needing-kebab-case-test-funs.elems;
+    my $num-ecosystem-modules = @ecosystem-modules.elems;
+    say "Modules still to be updated: " ~
+        "$num-kebab-case-modules of $num-ecosystem-modules (" ~
+        ($num-kebab-case-modules*100/$num-ecosystem-modules).fmt("%02d") ~ "%)";
 }
 
 #| return a list of the forks in the given user's GitHub account
@@ -128,6 +147,30 @@ sub unit-required($module-path) {
     return @unitless-files.Bool;
 }
 
+#| check if the kebab-case test functions are required
+sub kebab-case-test-functions($module-path) {
+    print "Checking $module-path... ";
+    my @files := find(:dir($module-path), :type("file"),
+                        :name(/ \.pl$ || \.p6$ || \.t$ || \.pm$ || \.pm6$ /));
+    my @kebab-case-needing-files;
+    for @files -> $file {
+        my @lines = $file.IO.lines;
+        push @kebab-case-needing-files, $file
+            if @lines.grep(/ ^( dies_ok || lives_ok || use_ok || cmd_ok || is_deeply || skip_rest || is_approx || isa_ok || eval_dies_ok || eval_lives_ok || throws_like ).* <-[{}]> \; \s*$ /);
+    }
+
+    if @kebab-case-needing-files {
+        say "Found files requiring kebab-case test functions";
+        say "Affected files:";
+        say @kebab-case-needing-files.join("\n");
+    }
+    else {
+        say "Looks ok";
+    }
+
+    return @kebab-case-needing-files.Bool;
+}
+
 #| fork the given repository into the given user's GitHub account
 sub fork-repo($repo-path, $user) {
     say "Forking $repo-path";
@@ -182,6 +225,20 @@ sub create-unit-branch($module-path) {
 #| determine if the repo has a unit declarator branch
 sub has-unit-branch($module-path) {
     my $command = "cd $module-path; git branch --list pr/add-unit-declarator";
+    my $output = qqx{$command}.chomp;
+
+    return $output !~~ '';
+}
+
+#| create a branch for the kebab-case test functions pull request
+sub create-kebab-case-branch($module-path) {
+    my $command = "cd $module-path; git checkout master; git checkout -b pr/use-kebab-case-test-funs";
+    qqx{$command};
+}
+
+#| determine if the repo has a kebab-case test functions branch
+sub has-kebab-case-branch($module-path) {
+    my $command = "cd $module-path; git branch --list pr/use-kebab-case-test-funs";
     my $output = qqx{$command}.chomp;
 
     return $output !~~ '';
