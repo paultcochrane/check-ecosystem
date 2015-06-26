@@ -15,7 +15,7 @@ sub MAIN($user, Bool :$update = False) {
     my $ecosystem-path = "/tmp/ecosystem";
     mkdir $ecosystem-path unless $ecosystem-path.IO.e;
 
-    my @user-forks = user-forks($user);
+    my @user-forks = user-forks($user, $update);
 
     my @ecosystem-modules := from-json($projects-json);
 
@@ -74,27 +74,34 @@ sub MAIN($user, Bool :$update = False) {
 }
 
 #| return a list of the forks in the given user's GitHub account
-sub user-forks($user) {
-    my $base-request = "https://api.github.com/users/$user/repos?per_page=100";
-    my @headers = qqx{curl -I $base-request}.split(/\n/);
-    my $link-line = @headers.grep(/'Link:'/);
-    $link-line.subst-mutate('Link: ', '');
-    my @links = $link-line.split(/\,\s*/);
-    my $last-link = @links.grep(/'rel="last"'/);
-    my $last-page = ($last-link ~~ /\&page\=(\d+)/)[0];
-
-    my @repos;
-    for 1..$last-page -> $page-number {
-        my $repo-json = LWP::Simple.get($base-request ~ "&page=$page-number");
-        my $repo-data = from-json($repo-json);
-        push @repos, $repo-data.values;
-    }
-
+sub user-forks($user, $is-update) {
     my @fork-names;
-    for @repos -> $repo {
-        my $full-name = $repo{'full_name'};
-        my $fork-name = $full-name.split(/\//)[*-1];
-        @fork-names.push($fork-name) if $repo{'fork'};
+    my $forks-file = "user-forks.dat";
+    if $is-update {
+        my $base-request = "https://api.github.com/users/$user/repos?per_page=100";
+        my @headers = qqx{curl -I $base-request}.split(/\n/);
+        my $link-line = @headers.grep(/'Link:'/);
+        $link-line.subst-mutate('Link: ', '');
+        my @links = $link-line.split(/\,\s*/);
+        my $last-link = @links.grep(/'rel="last"'/);
+        my $last-page = ($last-link ~~ /\&page\=(\d+)/)[0];
+
+        my @repos;
+        for 1..$last-page -> $page-number {
+            my $repo-json = LWP::Simple.get($base-request ~ "&page=$page-number");
+            my $repo-data = from-json($repo-json);
+            push @repos, $repo-data.values;
+        }
+
+        for @repos -> $repo {
+            my $full-name = $repo{'full_name'};
+            my $fork-name = $full-name.split(/\//)[*-1];
+            @fork-names.push($fork-name) if $repo{'fork'};
+        }
+        spurt $forks-file, @fork-names.perl;
+    }
+    else {
+        @fork-names = EVAL $forks-file.IO.slurp;
     }
     return @fork-names;
 }
