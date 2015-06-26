@@ -43,7 +43,7 @@ sub MAIN($user, :$module-name = Nil, Bool :$update = False) {
         clone-repo($repo-url, $ecosystem-path) unless $module-path.IO.e;
         update-repo($module-path) if $update;
         if unit-required($module-path) {
-            my $repo-path = $repo-url.subst('git://github.com/', '');
+            my $repo-path = $repo-url.subst(/ [https||git] '://github.com/' /, '');
             $repo-path ~~ s/\.git$//;
             fork-repo($repo-path, $user) if should-be-forked($repo-path, $user, @user-forks);
             update-repo-origin($module-path, $repo-url, $user)
@@ -52,7 +52,7 @@ sub MAIN($user, :$module-name = Nil, Bool :$update = False) {
             push @unitless-modules, $module-path;
         }
         if kebab-case-test-functions($module-path) {
-            my $repo-path = $repo-url.subst('git://github.com/', '');
+            my $repo-path = $repo-url.subst(/ [https||git] '://github.com/' /, '');
             $repo-path ~~ s/\.git$//;
             fork-repo($repo-path, $user) if should-be-forked($repo-path, $user, @user-forks);
             update-repo-origin($module-path, $repo-url, $user)
