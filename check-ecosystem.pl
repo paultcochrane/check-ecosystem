@@ -171,7 +171,7 @@ sub kebab-case-test-functions($module-path) {
     for @files -> $file {
         my @lines = $file.IO.lines.grep(/ ^^ <-[#]> /);
         push @kebab-case-needing-files, $file
-            if @lines.grep(/ ^( dies_ok || lives_ok || use_ok || cmd_ok || is_deeply || skip_rest || is_approx || isa_ok || eval_dies_ok || eval_lives_ok || throws_like ).* <-[{}]> \; \s*$ /);
+            if @lines.grep(/ ( dies_ok || lives_ok || use_ok || cmd_ok || is_deeply || skip_rest || is_approx || isa_ok || eval_dies_ok || eval_lives_ok || throws_like ).* <-[{}]> \; \s*$ /);
     }
 
     if @kebab-case-needing-files {
