@@ -67,7 +67,7 @@ sub MAIN($user, Bool :$update = False) {
     say @modules-needing-kebab-case-test-funs.join("\n");
 
     my $num-kebab-case-modules = @modules-needing-kebab-case-test-funs.elems;
-    my $num-ecosystem-modules = @ecosystem-modules.elems;
+    $num-ecosystem-modules = @ecosystem-modules.elems;
     say "Modules still to be updated: " ~
         "$num-kebab-case-modules of $num-ecosystem-modules (" ~
         ($num-kebab-case-modules*100/$num-ecosystem-modules).fmt("%02d") ~ "%)";
