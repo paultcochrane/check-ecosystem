@@ -190,7 +190,8 @@ sub kebab-case-test-functions($module-path) {
 sub fork-repo($repo-path, $user) {
     say "Forking $repo-path";
     my $command = "curl -u '$user' -X POST https://api.github.com/repos/$repo-path/" ~ "forks";
-    qqx{$command};
+    my $status = run $command;
+    die "Fork command failed: $command" if $status.exitcode != 0;
 }
 
 #| determine if the given repo needs to be forked
