@@ -161,7 +161,7 @@ sub kebab-case-test-functions($module-path) {
                         :name(/ \.pl$ || \.p6$ || \.t$ || \.pm$ || \.pm6$ /));
     my @kebab-case-needing-files;
     for @files -> $file {
-        my @lines = $file.IO.lines;
+        my @lines = $file.IO.lines.grep(/ ^^ <-[#]> /);
         push @kebab-case-needing-files, $file
             if @lines.grep(/ ^( dies_ok || lives_ok || use_ok || cmd_ok || is_deeply || skip_rest || is_approx || isa_ok || eval_dies_ok || eval_lives_ok || throws_like ).* <-[{}]> \; \s*$ /);
     }
