@@ -58,7 +58,8 @@ sub MAIN($user, :$module-name = Nil, Bool :$update = False) {
             update-repo-origin($module-path, $repo-url, $user)
                 unless has-user-origin($module-path, $repo-url, $user);
             create-kebab-case-branch($module-path) unless has-kebab-case-branch($module-path);
-            push @modules-needing-kebab-case-test-funs, $module-path;
+            $module<checkout-path> = $module-path;
+            push @modules-needing-kebab-case-test-funs, $module;
         }
     }
     say "Checkout paths of modules with unitless declarators: ";
@@ -71,7 +72,7 @@ sub MAIN($user, :$module-name = Nil, Bool :$update = False) {
         ($num-unitless-modules*100/$num-ecosystem-modules).fmt("%02d") ~ "%)";
 
     say "Checkout paths of modules requiring kebab-case test functions: ";
-    say @modules-needing-kebab-case-test-funs.join("\n");
+    say (@modules-needing-kebab-case-test-funs>><checkout-path> Z @modules-needing-kebab-case-test-funs>><name>).join("\n");
 
     my $num-kebab-case-modules = @modules-needing-kebab-case-test-funs.elems;
     $num-ecosystem-modules = @ecosystem-modules.elems;
