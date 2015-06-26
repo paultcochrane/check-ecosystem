@@ -4,7 +4,7 @@ use JSON::Tiny;
 use LWP::Simple;
 use File::Find;
 
-sub MAIN($user, Bool :$update = False) {
+sub MAIN($user, :$module-name = Nil, Bool :$update = False) {
     my $projects-file = $*SPEC.catfile($*PROGRAM_NAME.IO.dirname, "projects.json");
     if !$projects-file.IO.e or $update {
         say "Fetching projects.json from modules.perl6.org";
@@ -18,6 +18,13 @@ sub MAIN($user, Bool :$update = False) {
     my @user-forks = user-forks($user, $update);
 
     my @ecosystem-modules := from-json($projects-json);
+
+    if $module-name {
+        @ecosystem-modules = gather
+        for @ecosystem-modules -> $module {
+            take $module if $module<name> eq $module-name;
+        }
+    }
 
     say @ecosystem-modules.elems ~ " modules in ecosystem to be checked";
     my @unitless-modules;
