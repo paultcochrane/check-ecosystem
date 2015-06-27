@@ -125,11 +125,10 @@ sub update-repo($module-path) {
     say "Updating $module-path";
     my $origin-url = origin-url($module-path);
     if $origin-url ~~ / 'git://github.com' || 'https://github.com' / {
-        qqx{cd $module-path; git pull};
+        qqx{cd $module-path; git checkout master; git pull};
     }
     else {
-        qqx{cd $module-path; git fetch upstream master; git merge upstream/master};
-        qqx{cd $module-path; git pull origin pr/add-unit-declarator};
+        qqx{cd $module-path; git checkout master; git fetch upstream master; git merge upstream/master};
     }
 }
 
