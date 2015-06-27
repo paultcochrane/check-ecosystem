@@ -4,7 +4,7 @@ use JSON::Tiny;
 use LWP::Simple;
 use File::Find;
 
-sub MAIN($user, :$module-name = Nil, Bool :$update = False) {
+sub MAIN(Str :$github-user, :$module-name = Nil, Bool :$update = False) {
     my $projects-file = $*SPEC.catfile($*PROGRAM_NAME.IO.dirname, "projects.json");
     if !$projects-file.IO.e or $update {
         say "Fetching projects.json from modules.perl6.org";
@@ -15,7 +15,7 @@ sub MAIN($user, :$module-name = Nil, Bool :$update = False) {
     my $ecosystem-path = "/tmp/ecosystem";
     mkdir $ecosystem-path unless $ecosystem-path.IO.e;
 
-    my @user-forks = user-forks($user, $update);
+    my @user-forks = user-forks($github-user, $update);
 
     my @ecosystem-modules := from-json($projects-json);
 
@@ -45,18 +45,18 @@ sub MAIN($user, :$module-name = Nil, Bool :$update = False) {
         if unit-required($module-path) {
             my $repo-path = $repo-url.subst(/ [https||git] '://github.com/' /, '');
             $repo-path ~~ s/\.git$//;
-            fork-repo($repo-path, $user) if should-be-forked($repo-path, $user, @user-forks);
-            update-repo-origin($module-path, $repo-url, $user)
-                unless has-user-origin($module-path, $repo-url, $user);
+            fork-repo($repo-path, $github-user) if should-be-forked($repo-path, $github-user, @user-forks);
+            update-repo-origin($module-path, $repo-url, $github-user)
+                unless has-user-origin($module-path, $repo-url, $github-user);
             create-unit-branch($module-path) unless has-unit-branch($module-path);
             push @unitless-modules, $module-path;
         }
         if kebab-case-test-functions($module-path) {
             my $repo-path = $repo-url.subst(/ [https||git] '://github.com/' /, '');
             $repo-path ~~ s/\.git$//;
-            fork-repo($repo-path, $user) if should-be-forked($repo-path, $user, @user-forks);
-            update-repo-origin($module-path, $repo-url, $user)
-                unless has-user-origin($module-path, $repo-url, $user);
+            fork-repo($repo-path, $github-user) if should-be-forked($repo-path, $github-user, @user-forks);
+            update-repo-origin($module-path, $repo-url, $github-user)
+                unless has-user-origin($module-path, $repo-url, $github-user);
             create-kebab-case-branch($module-path) unless has-kebab-case-branch($module-path);
             $module<checkout-path> = $module-path;
             push @modules-needing-kebab-case-test-funs, $module;
@@ -82,11 +82,11 @@ sub MAIN($user, :$module-name = Nil, Bool :$update = False) {
 }
 
 #| return a list of the forks in the given user's GitHub account
-sub user-forks($user, $is-update) {
+sub user-forks($github-user, $is-update) {
     my @fork-names;
     my $forks-file = "user-forks.dat";
     if $is-update {
-        my $base-request = "https://api.github.com/users/$user/repos?per_page=100";
+        my $base-request = "https://api.github.com/users/$github-user/repos?per_page=100";
         my @headers = qqx{curl -I $base-request}.split(/\n/);
         my $link-line = @headers.grep(/'Link:'/);
         $link-line.subst-mutate('Link: ', '');
@@ -187,16 +187,16 @@ sub kebab-case-test-functions($module-path) {
 }
 
 #| fork the given repository into the given user's GitHub account
-sub fork-repo($repo-path, $user) {
+sub fork-repo($repo-path, $github-user) {
     say "Forking $repo-path";
-    my $command = "curl -u '$user' -X POST https://api.github.com/repos/$repo-path/" ~ "forks";
+    my $command = "curl -u '$github-user' -X POST https://api.github.com/repos/$repo-path/" ~ "forks";
     my $status = run $command;
     die "Fork command failed: $command" if $status.exitcode != 0;
 }
 
 #| determine if the given repo needs to be forked
-sub should-be-forked($repo-path, $user, @user-forks) {
-    if $repo-path ~~ /$user/ {
+sub should-be-forked($repo-path, $github-user, @user-forks) {
+    if $repo-path ~~ /$github-user/ {
         return False;  # it's the user's repo; no fork needed
     }
     else {
@@ -207,12 +207,12 @@ sub should-be-forked($repo-path, $user, @user-forks) {
 }
 
 #| point repo's origin to the user's fork
-sub update-repo-origin($module-path, $repo-url, $user) {
-    say "Pointing repo's origin to $user\'s fork";
+sub update-repo-origin($module-path, $repo-url, $github-user) {
+    say "Pointing repo's origin to $github-user\'s fork";
     my $new-url = $repo-url.subst('git://github.com/', 'git@github.com:');
     $new-url ~~ m/ \: ( .* ) \/ /;
     my $repo-owner = $0;
-    $new-url ~~ s/$repo-owner/$user/;
+    $new-url ~~ s/$repo-owner/$github-user/;
     my $command = "cd $module-path; git remote set-url origin $new-url";
     qqx{$command};
 
@@ -222,12 +222,12 @@ sub update-repo-origin($module-path, $repo-url, $user) {
 }
 
 #| determine if the repo already uses the user's fork as origin
-sub has-user-origin($module-path, $repo-url, $user) {
+sub has-user-origin($module-path, $repo-url, $github-user) {
     my $origin-url = origin-url($module-path);
     my $new-url = $repo-url.subst('git://github.com/', 'git@github.com:');
     $new-url ~~ m/ \: ( .* ) \/ /;
     my $repo-owner = $0;
-    $new-url ~~ s/$repo-owner/$user/;
+    $new-url ~~ s/$repo-owner/$github-user/;
 
     return $origin-url eq $new-url;
 }
