@@ -208,7 +208,7 @@ sub should-be-forked($repo-path, $github-user, @user-forks) {
 #| point repo's origin to the user's fork
 sub update-repo-origin($module-path, $repo-url, $github-user) {
     say "Pointing repo's origin to $github-user\'s fork";
-    my $new-url = $repo-url.subst('git://github.com/', 'git@github.com:');
+    my $new-url = $repo-url.subst(/ [https || git] '://github.com/' /, 'git@github.com:');
     $new-url ~~ m/ \: ( .* ) \/ /;
     my $repo-owner = $0;
     $new-url ~~ s/$repo-owner/$github-user/;
