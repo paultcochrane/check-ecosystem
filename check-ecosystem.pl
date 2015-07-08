@@ -259,4 +259,12 @@ sub has-kebab-case-branch($module-path) {
     return $output !~~ '';
 }
 
+#| determine and return the repo's name from the repo's url
+sub repo-name-from-url($repo-url) {
+    my $repo-name = $repo-url.split(/\//)[*-1];
+    $repo-name ~~ s/\.git$//;
+
+    return $repo-name;
+}
+
 # vim: expandtab shiftwidth=4 ft=perl6
