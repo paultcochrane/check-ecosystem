@@ -58,8 +58,28 @@ sub MAIN(Str :$github-user, :$module-name = Nil, Bool :$update = False) {
             update-repo-origin($module-path, $repo-url, $github-user)
                 unless has-user-origin($module-path, $repo-url, $github-user);
             create-kebab-case-branch($module-path) unless has-kebab-case-branch($module-path);
+            my $branch-name = "pr/use-kebab-case-test-funs";
+            if remote-branch-exists($repo-url, $github-user, $branch-name) {
+                # check out the branch
+                qqx{cd $module-path; git checkout $branch-name};
+                # pull
+                qqx{cd $module-path; git pull};
+                qqx{cd $module-path; git branch --set-upstream-to=origin pr/use-kebab-case-test-funs};
+            }
+            # run the check again
+            my $kebab-case-needed = kebab-case-test-functions($module-path);
+
+            # now getting *very* obvious that this code needs to be
+            # rewritten.  It needs to be object oriented and needs tests.
+            # Also how a given module is checked is slowly turning into
+            # spaghetti, hence this is *not* the final way to do this.
+            # Let's, however, get it running so that the kebab-case checks
+            # work
+
             $module<checkout-path> = $module-path;
-            push @modules-needing-kebab-case-test-funs, $module;
+            if $kebab-case-needed {
+                push @modules-needing-kebab-case-test-funs, $module;
+            }
         }
     }
 
