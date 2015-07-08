@@ -62,6 +62,14 @@ sub MAIN(Str :$github-user, :$module-name = Nil, Bool :$update = False) {
             push @modules-needing-kebab-case-test-funs, $module;
         }
     }
+
+    # report if broken on master, but fixed on branch
+    #
+    # need to set branch name in metadata somehow -> this would then be
+    # easier to carry around such information
+
+    # set upstream tracking information and pull
+
     say "Checkout paths of modules with unitless declarators: ";
     say @unitless-modules.join("\n");
 
