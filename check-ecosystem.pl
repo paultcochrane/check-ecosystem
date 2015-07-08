@@ -259,6 +259,21 @@ sub has-kebab-case-branch($module-path) {
     return $output !~~ '';
 }
 
+#| determine if the remote branch exists
+sub remote-branch-exists($repo-url, $github-user, $branch-name) {
+    my $repo-name = repo-name-from-url($repo-url);
+    my $base-request = "https://api.github.com/repos/$github-user/";
+    my $branch-url = $base-request ~ "$repo-name/branches/$branch-name";
+    my $branch-json = LWP::Simple.get($branch-url);
+    if $branch-json {
+        my $branch-info = from-json($branch-json);
+        return $branch-info<name>:exists;
+    }
+    else {
+        return False;
+    }
+}
+
 #| determine and return the repo's name from the repo's url
 sub repo-name-from-url($repo-url) {
     my $repo-name = $repo-url.split(/\//)[*-1];
