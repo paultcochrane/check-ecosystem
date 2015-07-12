@@ -251,7 +251,7 @@ sub update-repo-origin($module-path, $repo-url, $github-user) {
 #| determine if the repo already uses the user's fork as origin
 sub has-user-origin($module-path, $repo-url, $github-user) {
     my $origin-url = origin-url($module-path);
-    my $new-url = $repo-url.subst('git://github.com/', 'git@github.com:');
+    my $new-url = $repo-url.subst(/ [https || git] '://github.com/' /, 'git@github.com:');
     $new-url ~~ m/ \: ( .* ) \/ /;
     my $repo-owner = $0;
     $new-url ~~ s/$repo-owner/$github-user/;
