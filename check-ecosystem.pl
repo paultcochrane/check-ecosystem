@@ -63,8 +63,8 @@ sub MAIN(Str :$github-user, :$module-name = Nil, Bool :$update = False) {
                 # check out the branch
                 qqx{cd $module-path; git checkout $branch-name};
                 # pull
-                qqx{cd $module-path; git pull};
                 qqx{cd $module-path; git branch --set-upstream-to=origin pr/use-kebab-case-test-funs};
+                qqx{cd $module-path; git pull};
             }
             # run the check again
             my $kebab-case-needed = kebab-case-test-functions($module-path);
