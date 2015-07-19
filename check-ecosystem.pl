@@ -4,6 +4,16 @@ use JSON::Tiny;
 use LWP::Simple;
 use File::Find;
 
+# TODO: rewrite to use HTTP::UserAgent instead of curl and LWP::Simple
+#
+# the reason being, the connection gets throttled if one doesn't make
+# authenticated requests, which means after so many unauthenticated
+# requests, the code will simply fail without any good cause (because it
+# wasn't written well enough to handle this from the beginning).  By making
+# authenticated requests, one can run --update several times and the results
+# should be repeatable, which isn't necessarily the case without
+# authentication.
+
 sub MAIN(
     Str  :$github-user,
          :$module-name = Nil,
