@@ -4,7 +4,12 @@ use JSON::Tiny;
 use LWP::Simple;
 use File::Find;
 
-sub MAIN(Str :$github-user, :$module-name = Nil, Bool :$update = False) {
+sub MAIN(
+    Str  :$github-user,
+         :$module-name = Nil,
+    Bool :$update = False,
+    Bool :$debug = False
+) {
     my $projects-file = $*SPEC.catfile($*PROGRAM_NAME.IO.dirname, "projects.json");
     if !$projects-file.IO.e or $update {
         say "Fetching projects.json from modules.perl6.org";
@@ -60,6 +65,8 @@ sub MAIN(Str :$github-user, :$module-name = Nil, Bool :$update = False) {
             create-kebab-case-branch($module-path) unless has-kebab-case-branch($module-path);
             my $branch-name = "pr/use-kebab-case-test-funs";
             if remote-branch-exists($repo-url, $github-user, $branch-name) {
+                say "Remote branch exists: $repo-url" if $debug;
+
                 # check out the branch
                 qqx{cd $module-path; git checkout $branch-name};
                 # pull
