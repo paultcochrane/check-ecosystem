@@ -21,7 +21,7 @@ sub MAIN(
     Bool :$update = False,
     Bool :$debug = False
 ) {
-    my $projects-file = $*SPEC.catfile($*PROGRAM_NAME.IO.dirname, "projects.json");
+    my $projects-file = $*SPEC.catfile($*PROGRAM-NAME.IO.dirname, "projects.json");
     if !$projects-file.IO.e or $update {
         say "Fetching projects.json from modules.perl6.org";
         LWP::Simple.getstore("http://ecosystem-api.p6c.org/projects.json", "projects.json");
