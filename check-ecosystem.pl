@@ -118,7 +118,7 @@ sub MAIN(
         ($num-unitless-modules*100/$num-ecosystem-modules).fmt("%02d") ~ "%)";
 
     say "Checkout paths of modules requiring kebab-case test functions: ";
-    say (@modules-needing-kebab-case-test-funs>><checkout-path> Z @modules-needing-kebab-case-test-funs>><name>).join("\n");
+    say (@modules-needing-kebab-case-test-funs>><checkout-path> Z @modules-needing-kebab-case-test-funs>><name>).join("\n") if @modules-needing-kebab-case-test-funs;
 
     my $num-kebab-case-modules = @modules-needing-kebab-case-test-funs.elems;
     $num-ecosystem-modules = @ecosystem-modules.elems;
