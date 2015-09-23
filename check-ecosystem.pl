@@ -1,6 +1,7 @@
 use v6;
 
 use JSON::Tiny;
+use IO::Socket::SSL;   # implicit dependency for LWP::Simple for ssl
 use LWP::Simple;
 use File::Find;
 
