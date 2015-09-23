@@ -187,7 +187,7 @@ sub origin-url($module-path) {
 sub unit-required($module-path) {
     print "Checking $module-path... ";
     my @files := find(:dir($module-path), :type("file"),
-                        :name(/ \.pl$ || \.p6$ || \.t$ || \.pm$ || \.pm6$ /));
+                        :name(/ \.pl$ || \.p6$ || \.t$ || \.pm$ || \.pm6$ /)).list;
     my @unitless-files;
     for @files -> $file {
         my @lines = $file.IO.lines;
@@ -211,7 +211,7 @@ sub unit-required($module-path) {
 sub kebab-case-test-functions($module-path) {
     print "Checking $module-path... ";
     my @files := find(:dir($module-path), :type("file"),
-                        :name(/ \.pl$ || \.p6$ || \.t$ || \.pm$ || \.pm6$ /));
+                        :name(/ \.pl$ || \.p6$ || \.t$ || \.pm$ || \.pm6$ /)).list;
     my @kebab-case-needing-files;
     for @files -> $file {
         my @lines = $file.IO.lines.grep(/ ^^ <-[#]> /);
